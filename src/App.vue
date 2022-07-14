@@ -1,17 +1,83 @@
 <template>
-	<div class="view login">
-		<form class="login-form">
-			<h1>Login to Chat</h1>
+	<div
+		class="view Login"
+		v-if="state.username === '' || state.username === null"
+	>
+		<form class="Login-form" @submit.prevent="Login()">
+			<div class="form-inner">
+				<h1>Login to Chat</h1>
+				<label for="username">Username</label>
+				<input
+					v-model="inputUserName"
+					type="text"
+					id="username"
+					placeholder="please enter your username"
+				/>
+				<input type="submit" value="Login" />
+			</div>
 		</form>
 	</div>
-	<div class="view chat"></div>
+	<div class="view chat" v-else>
+		<header>
+			<button class="logout">Logout</button>
+			<h1>Welcome, {{ state.username }}</h1>
+		</header>
+		<section class="chat-box"></section>
+		<footer>
+			<form @submit.prevent="SendMessage">
+				<input
+					v-model="inputMessage"
+					type="text"
+					placeholder="write a message"
+				/>
+				<input type="submit" value="Send" />
+			</form>
+		</footer>
+	</div>
 </template>
 
 <script>
-// import db from "./db";
+import { reactive, ref } from "vue";
+import db from "./db";
 export default {
 	setup() {
-		return {};
+		const inputUserName = ref("");
+		const inputMessage = ref("");
+		const state = reactive({
+			username: "",
+			messages: [],
+		});
+		const Login = () => {
+			if (inputUserName.value !== "" || inputUserName.value !== null) {
+				state.username = inputUserName.value;
+				inputUserName.value = "";
+			}
+		};
+
+		const SendMessage = () => {
+			console.log(db, db.firebase);
+			// const messagesRef = db.firebase.database().ref("messages");
+
+			// if (inputMessage.value === "" || inputMessage.value === null) {
+			// 	console.log(messagesRef);
+			// 	return;
+			// }
+			// const message = {
+			// 	username: state.username,
+			// 	content: inputMessage.value,
+			// };
+
+			// messagesRef.push(message);
+			// inputMessage.value = "";
+		};
+
+		return {
+			inputUserName,
+			Login,
+			state,
+			SendMessage,
+			inputMessage,
+		};
 	},
 };
 </script>
@@ -29,11 +95,11 @@ export default {
 	display: flex;
 	justify-content: center;
 	min-height: 100vh;
-	background-color: #ea526f;
+	background-color: purple;
 
-	&.login {
+	&.Login {
 		align-items: center;
-		.login-form {
+		.Login-form {
 			display: block;
 			width: 100%;
 			padding: 15px;
@@ -85,7 +151,7 @@ export default {
 					display: block;
 					width: 100%;
 					padding: 10px 15px;
-					background-color: #ea526f;
+					background-color: purple;
 					border-radius: 8px;
 					color: #fff;
 					font-size: 18px;
@@ -93,7 +159,7 @@ export default {
 				}
 				&:focus-within {
 					label {
-						color: #ea526f;
+						color: purple;
 					}
 					input[type="text"] {
 						background-color: #fff;
@@ -169,7 +235,7 @@ export default {
 						.content {
 							color: #fff;
 							font-weight: 600;
-							background-color: #ea526f;
+							background-color: purple;
 						}
 					}
 				}
@@ -213,7 +279,7 @@ export default {
 					display: block;
 					padding: 10px 15px;
 					border-radius: 0px 8px 8px 0px;
-					background-color: #ea526f;
+					background-color: purple;
 					color: #fff;
 					font-size: 18px;
 					font-weight: 700;
