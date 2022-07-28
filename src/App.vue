@@ -22,7 +22,27 @@
 			<button class="logout">Logout</button>
 			<h1>Welcome, {{ state.username }}</h1>
 		</header>
-		<section class="chat-box"></section>
+		<section class="chat-box">
+			/messages
+			<div
+				v-for="message in state.messages"
+				:key="message.key"
+				:class="
+					message.username == state.username
+						? 'message current-user'
+						: 'message'
+				"
+			>
+				<div class="message-">
+					<div class="username">
+						{{ message.username }}
+					</div>
+					<div class="content">
+						{{ message.content }}
+					</div>
+				</div>
+			</div>
+		</section>
 		<footer>
 			<form @submit.prevent="SendMessage">
 				<input
@@ -37,8 +57,12 @@
 </template>
 
 <script>
-import { reactive, ref } from "vue";
-import db from "./db";
+import { onMounted, reactive, ref } from "vue";
+import writeUserData from "./db";
+// import getMessages from "./getMessages";
+// import { onValue } from "firebase/database";
+// import onValue from "./db";
+// import { messagesToUse } from "./db";
 export default {
 	setup() {
 		const inputUserName = ref("");
@@ -55,21 +79,20 @@ export default {
 		};
 
 		const SendMessage = () => {
-			console.log(db, db.firebase);
-			// const messagesRef = db.firebase.database().ref("messages");
+			// console.log(writeUserData);
 
-			// if (inputMessage.value === "" || inputMessage.value === null) {
-			// 	console.log(messagesRef);
-			// 	return;
-			// }
-			// const message = {
-			// 	username: state.username,
-			// 	content: inputMessage.value,
-			// };
+			if (inputMessage.value === "" || inputMessage.value === null) {
+				// console.log(messagesRef);
+				return;
+			}
 
-			// messagesRef.push(message);
-			// inputMessage.value = "";
+			writeUserData(state.username, inputMessage.value);
+
+			inputMessage.value = "";
 		};
+		onMounted(() => {
+			// 	 	state.messages = messages;
+		});
 
 		return {
 			inputUserName,
