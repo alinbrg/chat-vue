@@ -19,7 +19,7 @@
 	</div>
 	<div class="view chat" v-else>
 		<header>
-			<button class="logout">Logout</button>
+			<button class="logout" @click="Logout">Logout</button>
 			<h1>Welcome, {{ state.username }}</h1>
 		</header>
 		<section class="chat-box">
@@ -33,7 +33,7 @@
 						: 'message'
 				"
 			>
-				<div class="message-">
+				<div class="message-inner">
 					<div class="username">
 						{{ message.username }}
 					</div>
@@ -61,6 +61,7 @@ import { onMounted, reactive, ref } from "vue";
 import { initializeApp } from "firebase/app";
 import { getDatabase, set, onValue } from "firebase/database";
 import { ref as refBase } from "firebase/database";
+// import { query, orderBy } from "firebase/firestore";
 
 export default {
 	setup() {
@@ -79,10 +80,11 @@ export default {
 		const app = initializeApp(firebaseConfig);
 		const db = getDatabase(app);
 
-		function writeUserData(name, message) {
-			set(refBase(db, "messages/" + message), {
+		function writeUserData(name, message, d) {
+			set(refBase(db, "messages/" + d), {
 				username: name,
 				content: message,
+				time: d,
 			});
 		}
 
@@ -100,6 +102,10 @@ export default {
 			}
 		};
 
+		const Logout = () => {
+			state.username = "";
+		};
+
 		const SendMessage = () => {
 			// console.log(writeUserData);
 
@@ -107,14 +113,18 @@ export default {
 				// console.log(messagesRef);
 				return;
 			}
+			const d = new Date().getTime();
+			// console.log(d);
 
-			writeUserData(state.username, inputMessage.value);
+			writeUserData(state.username, inputMessage.value, d);
 
 			inputMessage.value = "";
 		};
 
 		onMounted(() => {
 			const starCountRef = refBase(db, "messages/");
+
+			// const q = query(starCountRef, orderBy("timestamp"));
 
 			onValue(starCountRef, (snapshot) => {
 				const data = snapshot.val();
@@ -130,6 +140,10 @@ export default {
 
 				// console.log(messagesArr);
 				state.messages = messagesArr;
+
+				state.messages.sort((a, b) => {
+					return a.id - b.id;
+				});
 			});
 		});
 
@@ -139,6 +153,7 @@ export default {
 			state,
 			SendMessage,
 			inputMessage,
+			Logout,
 		};
 	},
 };
