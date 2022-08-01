@@ -23,7 +23,7 @@
 			<h1>Welcome, {{ state.username }}</h1>
 		</header>
 		<section class="chat-box">
-			/messages
+			<!-- /messages -->
 			<div
 				v-for="message in state.messages"
 				:key="message.key"
@@ -58,19 +58,41 @@
 
 <script>
 import { onMounted, reactive, ref } from "vue";
-import writeUserData from "./db";
-// import getMessages from "./getMessages";
-// import { onValue } from "firebase/database";
-// import onValue from "./db";
-// import { messagesToUse } from "./db";
+import { initializeApp } from "firebase/app";
+import { getDatabase, set, onValue } from "firebase/database";
+import { ref as refBase } from "firebase/database";
+
 export default {
 	setup() {
+		const firebaseConfig = {
+			// ...
+			// The value of `databaseURL` depends on the location of the database
+			databaseURL: "https://chat-vue-39eec-default-rtdb.firebaseio.com",
+			apiKey: "AIzaSyAt1tDZQ9Q7-61AOFaW5wVrjxcK600Wu4o",
+			authDomain: "chat-vue-39eec.firebaseapp.com",
+			projectId: "chat-vue-39eec",
+			storageBucket: "chat-vue-39eec.appspot.com",
+			messagingSenderId: "317479173943",
+			appId: "1:317479173943:web:aed9357f915777c47164b2",
+			measurementId: "G-Y5JCVW7EH3",
+		};
+		const app = initializeApp(firebaseConfig);
+		const db = getDatabase(app);
+
+		function writeUserData(name, message) {
+			set(refBase(db, "messages/" + message), {
+				username: name,
+				content: message,
+			});
+		}
+
 		const inputUserName = ref("");
 		const inputMessage = ref("");
 		const state = reactive({
 			username: "",
 			messages: [],
 		});
+
 		const Login = () => {
 			if (inputUserName.value !== "" || inputUserName.value !== null) {
 				state.username = inputUserName.value;
@@ -90,8 +112,25 @@ export default {
 
 			inputMessage.value = "";
 		};
+
 		onMounted(() => {
-			// 	 	state.messages = messages;
+			const starCountRef = refBase(db, "messages/");
+
+			onValue(starCountRef, (snapshot) => {
+				const data = snapshot.val();
+				// console.log(data);
+				let messagesArr = [];
+				Object.keys(data).forEach((key) => {
+					messagesArr.push({
+						id: key,
+						username: data[key].username,
+						content: data[key].content,
+					});
+				});
+
+				// console.log(messagesArr);
+				state.messages = messagesArr;
+			});
 		});
 
 		return {
